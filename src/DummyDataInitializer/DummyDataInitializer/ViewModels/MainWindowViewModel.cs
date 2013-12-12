@@ -26,6 +26,7 @@ using Scheduler.Logic;
 		private Random rand;
 		private int currentSemester;
 		private ScheduleMaker scheduleMaker;
+		private bool isScheduleMakerStarted = false;
         #endregion
 
         #region Constructors
@@ -37,7 +38,8 @@ using Scheduler.Logic;
         {
             this.serviceLocator = serviceLocator;
 			InitializeCommand = new Command(OnInitializeCommandExecute);
-			MakeScheduleCommand = new Command(OnMakeScheduleCommandExecute);
+			StartScheduleMakerCommand = new Command(OnStartScheduleMakerCommandExecute, OnStartScheduleMakerCommandCanExecute);
+			StopScheduleMakerCommand = new Command(OnStopScheduleMakerCommandExecute, OnStopScheduleMakerCommandCanExecute);
 
 			ProgrammeFiles = new ObservableCollection<ProgrammeFile>();
 			foreach(var filename in Directory.GetFiles(Environment.CurrentDirectory, "programme*.txt"))
@@ -71,6 +73,20 @@ using Scheduler.Logic;
 		/// </summary>
 		public static readonly PropertyData ProgrammeFilesProperty = RegisterProperty("ProgrammeFiles", typeof(ObservableCollection<ProgrammeFile>), null);
 
+		/// <summary>
+		/// Gets or sets the property value.
+		/// </summary>
+		public Scheduler.Logic.Schedule Schedule
+		{
+			get { return GetValue<Scheduler.Logic.Schedule>(ScheduleProperty); }
+			set { SetValue(ScheduleProperty, value); }
+		}
+
+		/// <summary>
+		/// Register the Schedule property so it is known in the class.
+		/// </summary>
+		public static readonly PropertyData ScheduleProperty = RegisterProperty("Schedule", typeof(Scheduler.Logic.Schedule), null);
+
         #endregion
 
         #region Commands
@@ -78,12 +94,17 @@ using Scheduler.Logic;
 		/// Gets the InitializeCommand command.
 		/// </summary>
 		public Command InitializeCommand { get; private set; }
+		
+		/// <summary>
+		/// Gets the StartScheduleMakerCommand command.
+		/// </summary>
+		public Command StartScheduleMakerCommand { get; private set; }
 
 		/// <summary>
-		/// Gets the MakeScheduleCommand command.
+		/// Gets the StopScheduleMakerCommand command.
 		/// </summary>
-		public Command MakeScheduleCommand { get; private set; }
-		
+		public Command StopScheduleMakerCommand { get; private set; }
+
         #endregion
 
         #region Methods
@@ -384,15 +405,46 @@ using Scheduler.Logic;
 			}
 		}
 		#endregion
+
+		#region Schedule Maker
+		/// <summary>
+		/// Method to check whether the StartScheduleMakerCommand command can be executed.
+		/// </summary>
+		/// <returns><c>true</c> if the command can be executed; otherwise <c>false</c></returns>
+		private bool OnStartScheduleMakerCommandCanExecute()
+		{
+			return !isScheduleMakerStarted;
+		}
+
+		/// <summary>
+		/// Method to invoke when the StartScheduleMakerCommand command is executed.
+		/// </summary>
+		private void OnStartScheduleMakerCommandExecute()
+		{
+			isScheduleMakerStarted = true;
+			scheduleMaker = new ScheduleMaker();
+			scheduleMaker.StartMakeSchedule(true);
+		}
 		
 		/// <summary>
-		/// Method to invoke when the MakeScheduleCommand command is executed.
+		/// Method to check whether the StopScheduleMakerCommand command can be executed.
 		/// </summary>
-		private void OnMakeScheduleCommandExecute()
+		/// <returns><c>true</c> if the command can be executed; otherwise <c>false</c></returns>
+		private bool OnStopScheduleMakerCommandCanExecute()
 		{
-			scheduleMaker = new ScheduleMaker();
-			scheduleMaker.MakeSchedule();
+			return isScheduleMakerStarted;
 		}
-        #endregion
-    }
+
+		/// <summary>
+		/// Method to invoke when the StopScheduleMakerCommand command is executed.
+		/// </summary>
+		private void OnStopScheduleMakerCommandExecute()
+		{
+			isScheduleMakerStarted = false;
+			scheduleMaker.StopMakeSchedule();
+		}
+		#endregion
+		
+		#endregion
+	}
 }

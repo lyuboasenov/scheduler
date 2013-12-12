@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchedulerDAC", "..\Schedule
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduler.Logic", "Scheduler.Logic\Scheduler.Logic.csproj", "{FFB9E378-0274-4139-BEC4-9B57CA413DA1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScheduleMakerConsole", "ScheduleMakerConsole\ScheduleMakerConsole.csproj", "{92447BAA-4172-4A62-B00B-1E007BAEF097}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{FFB9E378-0274-4139-BEC4-9B57CA413DA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFB9E378-0274-4139-BEC4-9B57CA413DA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FFB9E378-0274-4139-BEC4-9B57CA413DA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92447BAA-4172-4A62-B00B-1E007BAEF097}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92447BAA-4172-4A62-B00B-1E007BAEF097}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92447BAA-4172-4A62-B00B-1E007BAEF097}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92447BAA-4172-4A62-B00B-1E007BAEF097}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

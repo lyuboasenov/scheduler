@@ -36,6 +36,10 @@
 
         <Button Grid.Row="1" Command="{Binding InitializeCommand}" Content="Initialize" />
 
-        <Button Grid.Row="1" Grid.Column="1" Command="{Binding MakeScheduleCommand}" Content="Make schedule" />
+        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
+            <Button Command="{Binding StartScheduleMakerCommand}" Content="Start schedule maker" Margin="5 0 0 0" />
+            <Button Command="{Binding StopScheduleMakerCommand}" Content="Stop schedule maker" Margin="0 0 5 0" HorizontalAlignment="Right" />
+        </StackPanel>
+        
     </Grid>
 </catel:DataWindow>
