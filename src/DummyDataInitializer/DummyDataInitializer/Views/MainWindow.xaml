@@ -16,12 +16,12 @@
             <RowDefinition Height="5*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="4*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         
-        <ListView Grid.Row="0" Grid.ColumnSpan="2" ItemsSource="{Binding ProgrammeFiles}" SelectionMode="Multiple" >
+        <ListView Grid.Row="0" ItemsSource="{Binding ProgrammeFiles}" SelectionMode="Multiple" >
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="IsSelected" Value="{Binding Path=IsSelected, Mode=TwoWay}"/>
@@ -35,5 +35,7 @@
         </ListView>
 
         <Button Grid.Row="1" Command="{Binding InitializeCommand}" Content="Initialize" />
+
+        <Button Grid.Row="1" Grid.Column="1" Command="{Binding MakeScheduleCommand}" Content="Make schedule" />
     </Grid>
 </catel:DataWindow>

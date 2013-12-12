@@ -14,6 +14,7 @@
 	using System.Collections.ObjectModel;
 	using Catel.Data;
 	using DummyDataInitializer.Models;
+using Scheduler.Logic;
 
     /// <summary>
     /// MainWindow view model.
@@ -23,6 +24,8 @@
         #region Fields
         private IServiceLocator serviceLocator;
 		private Random rand;
+		private int currentSemester;
+		private ScheduleMaker scheduleMaker;
         #endregion
 
         #region Constructors
@@ -34,6 +37,8 @@
         {
             this.serviceLocator = serviceLocator;
 			InitializeCommand = new Command(OnInitializeCommandExecute);
+			MakeScheduleCommand = new Command(OnMakeScheduleCommandExecute);
+
 			ProgrammeFiles = new ObservableCollection<ProgrammeFile>();
 			foreach(var filename in Directory.GetFiles(Environment.CurrentDirectory, "programme*.txt"))
 			{
@@ -74,10 +79,16 @@
 		/// </summary>
 		public Command InitializeCommand { get; private set; }
 
+		/// <summary>
+		/// Gets the MakeScheduleCommand command.
+		/// </summary>
+		public Command MakeScheduleCommand { get; private set; }
+		
         #endregion
 
         #region Methods
-        /// <summary>
+		#region Dummy data initialization
+		/// <summary>
 		/// Method to invoke when the InitializeCommand command is executed.
 		/// </summary>
 		private void OnInitializeCommandExecute()
@@ -89,6 +100,7 @@
 		{
 			var context = new SchedulerContext();
 			rand = new Random();
+			currentSemester = rand.Next(0, 1);
 			var start = DateTime.Now;
 			foreach (var file in ProgrammeFiles)
 			{
@@ -134,70 +146,89 @@
 
 		private void GenerateEnrollments(SchedulerContext context)
 		{
-			foreach (var courseLesson in context.CourseLessons)
+			foreach(var semester in context.Semesters)
 			{
-				if(courseLesson.LessonType == LessonType.Exercise || courseLesson.LessonType == LessonType.LabExercise)
+				if((semester.SemesterNumber - 1) % 2 == currentSemester)
 				{
-					var groups = courseLesson.Course.Semester.StudentGroups;
-					foreach(var group in groups)
+					foreach(var course in semester.Courses)
 					{
-						var enrollment = new Enrollment()
+						foreach (var courseLesson in course.Lessons)
 						{
-							CourseId = courseLesson.CourseId,
-							LessonType = courseLesson.LessonType,
-							TeacherId = GetRandomTeacherId(courseLesson.CourseId, context)
-						};
-						context.Enrollments.Add(enrollment);
-						context.SaveChanges();
+							if (courseLesson.LessonType == LessonType.Exercise || courseLesson.LessonType == LessonType.LabExercise)
+							{
+								var groups = courseLesson.Course.Semester.StudentGroups;
+								foreach (var group in groups)
+								{
+									var teacherId = GetRandomTeacherId(courseLesson.CourseId, context);
+									for (int i = 0; i < courseLesson.LessonCount; i++)
+									{
+										var enrollment = new Enrollment()
+										{
+											CourseId = courseLesson.CourseId,
+											LessonType = courseLesson.LessonType,
+											TeacherId = teacherId
+										};
+										context.Enrollments.Add(enrollment);
+										context.SaveChanges();
 
-						group.Enrollments.Add(enrollment);
-						foreach(var student in group.Students)
-						{
-							student.Enrollments.Add(enrollment);
+										group.Enrollments.Add(enrollment);
+										context.SaveChanges();
+										foreach (var student in group.Students)
+										{
+											student.Enrollments.Add(enrollment);
+										}
+										context.SaveChanges();
+									}
+								}
+							}
+							else
+							{
+								var t1TeacherId = GetRandomTeacherId(courseLesson.CourseId, context);
+								var t2TeacherId = GetRandomTeacherId(courseLesson.CourseId, context);
+								for (int i = 0; i < courseLesson.LessonCount; i++)
+								{
+									var torrent1 = courseLesson.Course.Semester.StudentGroups.Where(sg => sg.Number <= 4);
+									var enrollment1 = new Enrollment()
+									{
+										CourseId = courseLesson.CourseId,
+										LessonType = courseLesson.LessonType,
+										TeacherId = t1TeacherId
+									};
+									context.Enrollments.Add(enrollment1);
+									context.SaveChanges();
+
+									foreach (var group in torrent1)
+									{
+										group.Enrollments.Add(enrollment1);
+										foreach (var student in group.Students)
+										{
+											student.Enrollments.Add(enrollment1);
+										}
+										context.SaveChanges();
+									}
+
+									var torrent2 = courseLesson.Course.Semester.StudentGroups.Where(sg => sg.Number <= 4);
+									var enrollment2 = new Enrollment()
+									{
+										CourseId = courseLesson.CourseId,
+										LessonType = courseLesson.LessonType,
+										TeacherId = t2TeacherId
+									};
+									context.Enrollments.Add(enrollment2);
+									context.SaveChanges();
+
+									foreach (var group in torrent2)
+									{
+										group.Enrollments.Add(enrollment2);
+										foreach (var student in group.Students)
+										{
+											student.Enrollments.Add(enrollment2);
+										}
+										context.SaveChanges();
+									}
+								}
+							}
 						}
-						context.SaveChanges();
-					}
-				}
-				else
-				{
-					var torrent1 = courseLesson.Course.Semester.StudentGroups.Where(sg => sg.Number <= 4);
-					var enrollment1 = new Enrollment()
-					{
-						CourseId = courseLesson.CourseId,
-						LessonType = courseLesson.LessonType,
-						TeacherId = GetRandomTeacherId(courseLesson.CourseId, context)
-					};
-					context.Enrollments.Add(enrollment1);
-					context.SaveChanges();
-
-					foreach (var group in torrent1)
-					{
-						group.Enrollments.Add(enrollment1);
-						foreach (var student in group.Students)
-						{
-							student.Enrollments.Add(enrollment1);
-						}
-						context.SaveChanges();
-					}
-
-					var torrent2 = courseLesson.Course.Semester.StudentGroups.Where(sg => sg.Number <= 4);
-					var enrollment2 = new Enrollment()
-					{
-						CourseId = courseLesson.CourseId,
-						LessonType = courseLesson.LessonType,
-						TeacherId = GetRandomTeacherId(courseLesson.CourseId, context)
-					};
-					context.Enrollments.Add(enrollment2);
-					context.SaveChanges();
-
-					foreach (var group in torrent2)
-					{
-						group.Enrollments.Add(enrollment2);
-						foreach (var student in group.Students)
-						{
-							student.Enrollments.Add(enrollment2);
-						}
-						context.SaveChanges();
 					}
 				}
 			}
@@ -212,10 +243,9 @@
 
 		private void GenerateStudents(SchedulerContext context)
 		{
-			var currentSemester = rand.Next(0, 1);
 			foreach(var semester in context.Semesters)
 			{
-				if(semester.SemesterNumber % 2 == currentSemester)
+				if((semester.SemesterNumber - 1) % 2 == currentSemester)
 				{
 					int studentNumberCounter = 0;
 					var numberPrefix = GetStudentNumberPrefix(semester.Programme.Name);
@@ -267,6 +297,7 @@
 					var semesters = new List<Semester>();
 					int semesterNumber = 0;
 					string lastSemesterId = string.Empty;
+					bool skip = false;
 					while((line = reader.ReadLine()) != null)
 					{
 						var match = regex.Match(line);
@@ -276,14 +307,24 @@
 							//adds semester
 							if (string.Compare(lastSemesterId, groups["semester"].Value.Trim()) != 0)
 							{
-								semesterNumber++;
-								lastSemesterId = groups["semester"].Value.Trim();
+								if(semesterNumber % 2 == currentSemester)
+								{
+									semesterNumber++;
+									lastSemesterId = groups["semester"].Value.Trim();
 
-								var semester = new Semester() { ProgrammeId = programme.Id, SemesterNumber = semesterNumber };
-								context.Semesters.Add(semester);
-								context.SaveChanges();
-								semesters.Add(semester);
+									var semester = new Semester() { ProgrammeId = programme.Id, SemesterNumber = semesterNumber };
+									context.Semesters.Add(semester);
+									context.SaveChanges();
+									semesters.Add(semester);
+									skip = false;
+								}
+								else
+								{
+									skip = true;
+								}
 							}
+
+							if (skip) continue;
 													
 							//Adds course
 							var course = new Course()
@@ -341,6 +382,16 @@
 					}
 				}
 			}
+		}
+		#endregion
+		
+		/// <summary>
+		/// Method to invoke when the MakeScheduleCommand command is executed.
+		/// </summary>
+		private void OnMakeScheduleCommandExecute()
+		{
+			scheduleMaker = new ScheduleMaker();
+			scheduleMaker.MakeSchedule();
 		}
         #endregion
     }

@@ -16,6 +16,12 @@ namespace SchedulerDAC.DAL
 
         }
 
+		public SchedulerContext(string nameOrConnectionString)
+			: base(nameOrConnectionString)
+		{
+
+		}
+
 		public DbSet<Schedule> Schedule { get; set; }
 		public DbSet<Enrollment> Enrollments { get; set; }
 		public DbSet<Student> Students { get; set; }
